@@ -9,6 +9,13 @@ This file is the root operating manual for coding agents and contributors workin
 - Repository phase: pre-scaffold, documentation-first.
 - Contributor workflow: `CONTRIBUTING.md`
 - Verified development commands: `docs/development.md`
+- Repository knowledge map:
+  - `ARCHITECTURE.md`
+  - `docs/design-docs/index.md`
+  - `docs/PLANS.md`
+  - `docs/QUALITY_SCORE.md`
+  - `docs/RELIABILITY.md`
+  - `docs/SECURITY.md`
 
 ## Source of truth
 
@@ -24,6 +31,7 @@ If two sources disagree, follow the higher-priority source and update the stale 
 ## Working rules
 
 - Check active design or planning docs when a task depends on project-specific decisions.
+- Treat `AGENTS.md` as a map, not an encyclopedia. Put durable project knowledge in versioned docs under `docs/`.
 - Do not invent build, run, test, or debug commands before they have been scaffolded and verified in this repository.
 - Use `npm` as the default package manager unless the repository later adopts another tool explicitly.
 - Prefer mainstream, low-friction tooling that is easy for open-source contributors to run on Windows, macOS, and Linux.
@@ -38,6 +46,16 @@ If two sources disagree, follow the higher-priority source and update the stale 
 - Canonical development commands live in `docs/development.md`.
 - Only add a command there after running it successfully in this repository.
 - If a documented command stops working, fix the command or update the doc in the same change.
+
+## Repository map
+
+- `ARCHITECTURE.md`: current system map, planned boundaries, and harness surfaces
+- `docs/design-docs/index.md`: index of design decisions and harness-oriented notes
+- `docs/PLANS.md`: active/completed execution plan index and tech debt entrypoint
+- `docs/QUALITY_SCORE.md`: current documentation/scaffolding maturity snapshot
+- `docs/RELIABILITY.md`: pre-scaffold reliability expectations and future checks
+- `docs/SECURITY.md`: secret handling and planned security gates
+- `.omc/plans/yt-to-issue-v1-revised.md`: current product implementation plan
 
 ## Git workflow
 
