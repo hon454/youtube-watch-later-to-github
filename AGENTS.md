@@ -6,7 +6,7 @@ This file is the root operating manual for coding agents and contributors workin
 
 ## Project status
 
-- Repository phase: pre-scaffold, documentation-first.
+- Repository phase: early runnable scaffold, documentation-led.
 - Contributor workflow: `CONTRIBUTING.md`
 - Verified development commands: `docs/development.md`
 - Repository knowledge map:

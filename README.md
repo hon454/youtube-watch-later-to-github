@@ -1,82 +1,134 @@
 # youtube-watch-later-to-github
 
-Cloudflare Workers template that turns YouTube links shared from Telegram into GitHub issues.
+An open-source Cloudflare Workers template that turns YouTube links shared from Telegram into GitHub issues.
 
-## What it does
+This project is for people who want a simple "send it now, watch it later" workflow without running a full app backend. Share a YouTube link in Telegram, and the Worker turns it into a tracked item in GitHub with optional Project V2 sync and daily reminders.
 
-- Accepts `POST /telegram/webhook` updates from Telegram
-- Verifies the Telegram webhook secret and allowed chat ID
-- Normalizes YouTube URLs and extracts the video ID
-- Fetches YouTube oEmbed metadata when available
-- Detects duplicates before creating a new issue
-- Creates a `watch-later` issue in GitHub
-- Optionally adds the issue to GitHub Project V2 with `Status = To Watch`
-- Sends a Telegram confirmation or error message back to the user
-- Includes GitHub Actions for daily reminders and issue close/reopen sync
+## Why use this template
 
-## Routes
+- Capture videos from Telegram without copy-pasting into GitHub manually
+- Keep your watch-later queue in plain GitHub issues
+- Avoid duplicate entries for the same YouTube video
+- Optionally manage progress in GitHub Project V2
+- Get daily Telegram reminders from GitHub Actions
 
-- `GET /healthz`
-- `POST /telegram/webhook`
+## Who this is for
 
-## Required environment variables
+This repository fits best if you want a self-hosted personal workflow or a small shared setup:
 
-Put Worker secrets in `.dev.vars` for local development and `wrangler secret put` for deployment.
+- one Telegram bot
+- one allowed Telegram chat
+- one target GitHub repository
+- Cloudflare Workers for deployment
+
+It is not designed as a multi-user SaaS service.
+
+## How it works
+
+1. Telegram sends a webhook update to the Worker.
+2. The Worker verifies the webhook secret and allowed chat ID.
+3. The Worker normalizes the YouTube URL, fetches metadata when possible, and checks for duplicates.
+4. The Worker creates a `watch-later` issue in GitHub.
+5. If configured, the issue is also added to GitHub Project V2 with `Status = To Watch`.
+6. Telegram receives a success, duplicate, or error message.
+
+## Features
+
+- `POST /telegram/webhook` to ingest Telegram updates
+- `GET /healthz` for deployment and local health checks
+- Telegram webhook secret validation
+- Allowed chat ID restriction
+- YouTube URL normalization for common link formats
+- YouTube oEmbed metadata lookup with fallback behavior
+- Duplicate detection before issue creation
+- Optional GitHub Project V2 sync
+- Daily reminder and issue status sync GitHub Actions workflows
+
+## Quick start
+
+### Prerequisites
+
+- Node.js 20 or newer
+- An active Cloudflare account with Wrangler configured
+- A Telegram bot token
+- A GitHub personal access token for the target repository
+
+If you plan to use GitHub Project V2, make sure the token also has the required project access.
+
+### 1. Fork and install
+
+```bash
+npm install
+```
+
+### 2. Configure local secrets
+
+Use the example files as your starting point:
+
+- [`.dev.vars.example`](./.dev.vars.example) for Worker-local development
+- [`.env.example`](./.env.example) for setup scripts and GitHub Actions-style local runs
+
+Required variables:
 
 | Variable | Required | Description |
 | --- | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token |
-| `TELEGRAM_WEBHOOK_SECRET` | Yes | Shared secret validated from `X-Telegram-Bot-Api-Secret-Token` |
-| `TELEGRAM_ALLOWED_CHAT_ID` | Yes | Only this Telegram chat ID is allowed to create issues |
-| `GITHUB_TOKEN` | Yes | GitHub PAT with `repo` scope |
+| `TELEGRAM_WEBHOOK_SECRET` | Yes | Secret validated from `X-Telegram-Bot-Api-Secret-Token` |
+| `TELEGRAM_ALLOWED_CHAT_ID` | Yes | Only this Telegram chat ID can create issues |
+| `GITHUB_TOKEN` | Yes | GitHub token for issue creation |
 | `GITHUB_OWNER` | Yes | GitHub user or organization name |
 | `GITHUB_REPO` | Yes | Target repository name |
-| `GITHUB_PROJECT_NUMBER` | No | Project V2 number to enable optional board sync |
+| `GITHUB_PROJECT_NUMBER` | No | Enables optional Project V2 sync |
 
-Reference files:
+### 3. Generate Worker types
 
-- [.dev.vars.example](/D:/youtube-watch-later-to-github/.dev.vars.example)
-- [.env.example](/D:/youtube-watch-later-to-github/.env.example)
+```bash
+npm run cf-typegen
+```
 
-## Local setup
+### 4. Run locally
 
-1. Copy [.dev.vars.example](/D:/youtube-watch-later-to-github/.dev.vars.example) to `.dev.vars` and fill in your secrets.
-2. Install dependencies with `npm install`.
-3. Generate runtime types with `npm run cf-typegen`.
-4. Start the Worker locally with `npm run dev`.
-5. Confirm the Worker is healthy at `http://127.0.0.1:8787/healthz`.
+```bash
+npm run dev
+```
 
-Verified local commands are tracked in [docs/development.md](/D:/youtube-watch-later-to-github/docs/development.md).
+Then confirm the Worker is healthy at `http://127.0.0.1:8787/healthz`.
 
-## Deployment flow
+Verified local development commands are tracked in [`docs/development.md`](./docs/development.md).
 
-1. Authenticate Wrangler with your Cloudflare account.
-2. Deploy the Worker with `npm run deploy`.
-3. Register the Telegram webhook with `npm run setup:webhook`.
+## Deployment
 
-The webhook setup script expects:
+The repository includes scripts for deployment and setup:
+
+- `npm run deploy` to publish the Worker
+- `npm run setup:webhook` to register the Telegram webhook
+- `npm run setup:project` to validate optional Project V2 configuration
+
+For webhook setup, provide:
 
 - `PUBLIC_WEBHOOK_URL`
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_WEBHOOK_SECRET`
 
-## Optional Project V2 setup
+For production, keep Worker secrets in Cloudflare rather than local files.
 
-Set `GITHUB_PROJECT_NUMBER` to enable Project V2 integration. The Worker looks up the project and status field at runtime.
+## GitHub Project V2 support
 
-Use `npm run setup:project` to confirm that the configured project exposes:
+Project integration is optional. If you set `GITHUB_PROJECT_NUMBER`, the Worker will try to:
 
-- a `Status` single-select field
-- a `To Watch` option
-- a `Done` option
+- add newly created issues to the project
+- set `Status = To Watch` on create
+- support `Done` sync when issues are closed
 
-## GitHub Actions
+The target project should expose a `Status` single-select field with at least `To Watch` and `Done`.
+
+## Included GitHub Actions
 
 This repository ships with three workflows:
 
-- [ci.yml](/D:/youtube-watch-later-to-github/.github/workflows/ci.yml): generates Worker types, type-checks, and runs Vitest
-- [daily-reminder.yml](/D:/youtube-watch-later-to-github/.github/workflows/daily-reminder.yml): sends a daily Telegram summary of open `watch-later` issues
-- [issue-sync.yml](/D:/youtube-watch-later-to-github/.github/workflows/issue-sync.yml): syncs Project V2 status on issue close or reopen
+- [`ci.yml`](./.github/workflows/ci.yml) for type generation, type-checking, and tests
+- [`daily-reminder.yml`](./.github/workflows/daily-reminder.yml) for Telegram watch-later reminders
+- [`issue-sync.yml`](./.github/workflows/issue-sync.yml) for Project V2 close and reopen sync
 
 GitHub Actions secrets:
 
@@ -85,29 +137,29 @@ GitHub Actions secrets:
 - `TELEGRAM_CHAT_ID`
 - `GITHUB_PROJECT_NUMBER` for optional Project V2 sync
 
-## Tests
+## Development and testing
 
-- `npm run check`
-- `npm test`
+Use the verified local commands below:
 
-Current coverage includes:
+```bash
+npm run check
+npm test
+```
 
-- YouTube URL parsing and oEmbed fallback behavior
-- Telegram update parsing and webhook secret validation
-- GitHub duplicate detection and issue creation payloads
-- Project V2 add/update mutations
-- Reminder formatting and Telegram message splitting
-- Worker orchestration with `ctx.waitUntil()`
+Coverage currently includes YouTube parsing, Telegram validation, duplicate detection, GitHub issue creation, Project V2 mutations, reminder formatting, and Worker orchestration.
 
-## Repository docs
+## Contributing
 
-- [Implementation plan](/D:/youtube-watch-later-to-github/.omc/plans/yt-to-issue-v1-revised.md)
-- [Agent instructions](/D:/youtube-watch-later-to-github/AGENTS.md)
-- [Architecture map](/D:/youtube-watch-later-to-github/ARCHITECTURE.md)
-- [Design docs index](/D:/youtube-watch-later-to-github/docs/design-docs/index.md)
-- [Plan index](/D:/youtube-watch-later-to-github/docs/PLANS.md)
-- [Quality snapshot](/D:/youtube-watch-later-to-github/docs/QUALITY_SCORE.md)
-- [Reliability expectations](/D:/youtube-watch-later-to-github/docs/RELIABILITY.md)
-- [Security baseline](/D:/youtube-watch-later-to-github/docs/SECURITY.md)
-- [Contribution guide](/D:/youtube-watch-later-to-github/CONTRIBUTING.md)
-- [Development commands](/D:/youtube-watch-later-to-github/docs/development.md)
+Issues and pull requests are welcome. For contributor workflow and repository conventions, see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+## Project docs
+
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- [`docs/development.md`](./docs/development.md)
+- [`docs/design-docs/index.md`](./docs/design-docs/index.md)
+- [`docs/SECURITY.md`](./docs/SECURITY.md)
+- [`docs/RELIABILITY.md`](./docs/RELIABILITY.md)
+
+## License
+
+[MIT](./LICENSE)
