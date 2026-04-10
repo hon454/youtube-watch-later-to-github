@@ -1,0 +1,5 @@
+name = "youtube-watch-later-to-github"
+main = "src/index.ts"
+compatibility_date = "2026-04-10"
+
+# Put local secrets in .dev.vars during development.

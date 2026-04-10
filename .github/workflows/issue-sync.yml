@@ -1,0 +1,34 @@
+name: Sync Project Status
+
+on:
+  issues:
+    types:
+      - closed
+      - reopened
+
+jobs:
+  sync-project-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Project V2 status
+        if: ${{ secrets.GH_TOKEN != '' && secrets.GITHUB_PROJECT_NUMBER != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
+          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+          ISSUE_ACTION: ${{ github.event.action }}
+        run: npm run sync:project

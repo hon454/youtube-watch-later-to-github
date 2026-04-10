@@ -1,0 +1,50 @@
+{
+  "name": "youtube-watch-later-to-github",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Workers template that turns shared YouTube links into GitHub issues.",
+  "type": "module",
+  "scripts": {
+    "cf-typegen": "wrangler types",
+    "check": "tsc --noEmit",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "setup:webhook": "tsx scripts/setup-webhook.ts",
+    "setup:project": "tsx scripts/setup-project.ts",
+    "reminder": "tsx scripts/daily-reminder.ts",
+    "sync:project": "tsx scripts/sync-project-status.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hon454/youtube-watch-later-to-github.git"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "telegram",
+    "github-issues",
+    "youtube"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/hon454/youtube-watch-later-to-github/issues"
+  },
+  "homepage": "https://github.com/hon454/youtube-watch-later-to-github#readme",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.14.3",
+    "@types/node": "^25.6.0",
+    "miniflare": "^4.20260409.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4",
+    "wrangler": "^4.81.1"
+  }
+}

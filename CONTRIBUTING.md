@@ -2,13 +2,14 @@
 
 ## Current phase
 
-This repository is still in a documentation-first stage. Before adding implementation code, check any active design or planning docs and keep changes aligned with the current phase.
+This repository now has a runnable Worker scaffold. Before making changes, check the current implementation plan and the design docs so code, tests, and setup instructions stay aligned.
 
 ## Working principles
 
 - Prefer small, reviewable changes over broad refactors.
 - Keep the repository friendly to first-time contributors.
 - Record new canonical commands only after verifying them locally.
+- Rerun `npm run cf-typegen` after changing `wrangler.toml` or Worker-exposed bindings.
 - Update user-facing docs whenever behavior or setup changes.
 - Do not introduce undocumented environment variables, scripts, or workflows.
 - Do not commit secrets or machine-specific credentials.

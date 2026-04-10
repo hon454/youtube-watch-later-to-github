@@ -2,23 +2,24 @@
 
 ## Current phase
 
-This repository does not yet have runtime code, so reliability work is currently about preserving correct future behavior through plans, boundaries, and visible constraints.
+The repository now includes runtime code, tests, and GitHub Actions. Reliability work is no longer just planned; key protections are implemented.
 
-## Baseline expectations
+## Implemented expectations
 
-- Webhook handling must prefer fast acknowledgement and background work where appropriate.
-- Duplicate detection should protect against accidental issue spam.
-- Optional integrations must fail without breaking the core issue-creation path.
-- Reminder delivery must account for Telegram message size limits.
-- Reliability claims should not appear in docs until they are backed by verified behavior.
+- Webhook handling acknowledges quickly and delegates background work via `ctx.waitUntil()`.
+- Duplicate detection checks GitHub Search before issue creation.
+- Project V2 failures do not block the core issue-creation path.
+- Reminder formatting limits detail to five recent items and splits long Telegram messages.
+- `GET /healthz` is available for local and deployed smoke checks.
 
-## Reliability checkpoints to add after scaffolding
+## Automated checkpoints
 
-- unit tests for URL parsing, duplicate detection, and formatter edge cases
-- integration tests for webhook request flow
-- smoke validation for `GET /healthz`
-- CI coverage for the primary happy path and critical fallbacks
+- Unit coverage for YouTube parsing, Telegram parsing, duplicate detection, Project V2 payloads, and formatter edge cases
+- Worker orchestration test covering accepted webhook flow and async follow-up behavior
+- CI workflow that runs Worker type generation, `tsc --noEmit`, and Vitest
 
-## Current gap
+## Remaining gap
 
-None of the checkpoints above are automated yet. Treat this document as a contract for future implementation, not as proof of existing coverage.
+- There is no deployed smoke test yet for the live Worker endpoint.
+- External API retries remain intentionally conservative and are limited to Telegram `sendMessage`.
+- Project V2 item lookup currently scans the first 100 project items, which is acceptable for the single-user v1 template but not intended as a multi-tenant scaling strategy.

@@ -2,49 +2,53 @@
 
 ## Status
 
-As of 2026-04-10, this repository is still pre-scaffold. This document describes the intended system map and the repository-level harness surfaces that should exist before and during implementation.
+As of 2026-04-10, the repository contains a runnable Cloudflare Worker scaffold, setup scripts, automated tests, and CI workflows aligned with the v1 implementation plan.
 
 ## System intent
 
-The project aims to provide an open-source template that turns shared YouTube links into GitHub issues, with Telegram as the ingestion channel and Cloudflare Workers as the runtime.
+The project provides an open-source template that turns YouTube links shared from Telegram into GitHub issues, with Cloudflare Workers handling ingestion and orchestration.
 
-## Planned product flow
+## Runtime flow
 
-1. Telegram sends a webhook update containing a shared YouTube link.
-2. The Worker validates request authenticity and allowed chat scope.
-3. The Worker normalizes the YouTube URL and derives a video ID.
-4. The Worker fetches metadata from YouTube oEmbed when available.
-5. The Worker searches GitHub for an existing matching issue.
-6. The Worker creates a new GitHub issue or reports the duplicate.
-7. The Worker optionally adds the issue to GitHub Project V2.
-8. A scheduled reminder flow summarizes open watch-later issues back to Telegram.
+1. Telegram sends a webhook update to `POST /telegram/webhook`.
+2. The Worker validates the Telegram secret token header.
+3. The Worker extracts the message context and verifies the configured chat ID.
+4. The Worker parses and normalizes the YouTube URL.
+5. The Worker returns `200 Accepted` quickly and continues background processing with `ctx.waitUntil()`.
+6. The background task fetches YouTube oEmbed metadata when available.
+7. The Worker searches GitHub for an existing matching `watch-later` issue.
+8. The Worker creates a new issue when no duplicate exists.
+9. The Worker optionally adds the issue to GitHub Project V2 and sets `Status = To Watch`.
+10. The Worker sends a Telegram confirmation or error message back to the user.
 
-## Planned code boundaries
+## Implemented code boundaries
 
-The current implementation plan in [.omc/plans/yt-to-issue-v1-revised.md](./.omc/plans/yt-to-issue-v1-revised.md) suggests the following modules once scaffolding begins:
+- [src/config.ts](/D:/youtube-watch-later-to-github/src/config.ts): environment parsing and typed configuration
+- [src/telegram.ts](/D:/youtube-watch-later-to-github/src/telegram.ts): webhook verification, update parsing, and Telegram messaging
+- [src/youtube.ts](/D:/youtube-watch-later-to-github/src/youtube.ts): YouTube URL parsing and oEmbed lookup
+- [src/github/issues.ts](/D:/youtube-watch-later-to-github/src/github/issues.ts): duplicate detection, label management, issue creation, reminder listing
+- [src/github/project.ts](/D:/youtube-watch-later-to-github/src/github/project.ts): optional Project V2 lookup and status mutations
+- [src/formatters.ts](/D:/youtube-watch-later-to-github/src/formatters.ts): issue body and reminder formatting
+- [src/index.ts](/D:/youtube-watch-later-to-github/src/index.ts): route handling and orchestration
 
-- `config`: environment parsing, validation, and typed access
-- `telegram`: webhook verification, update parsing, and user-facing responses
-- `youtube`: URL normalization, video ID extraction, and oEmbed lookup
-- `github/issues`: duplicate detection and issue creation
-- `github/project`: optional Project V2 lookup and mutations
-- `formatters`: issue body and reminder message formatting
-- Worker entrypoint: routing, orchestration, and `ctx.waitUntil()` usage
+## Automation surfaces
 
-## Harness surfaces
+- [scripts/setup-webhook.ts](/D:/youtube-watch-later-to-github/scripts/setup-webhook.ts): registers the Telegram webhook with `secret_token`
+- [scripts/setup-project.ts](/D:/youtube-watch-later-to-github/scripts/setup-project.ts): validates Project V2 configuration
+- [scripts/daily-reminder.ts](/D:/youtube-watch-later-to-github/scripts/daily-reminder.ts): sends daily Telegram reminders
+- [scripts/sync-project-status.ts](/D:/youtube-watch-later-to-github/scripts/sync-project-status.ts): syncs Project V2 status after issue close or reopen
 
-Before full application code exists, the repository should make the following harness surfaces explicit:
+## Reliability and enforcement surfaces
 
-- Source-of-truth docs for architecture, plans, quality, reliability, and security
-- A clear distinction between active plans, completed plans, and known tech debt
-- A place to capture agent-readable design decisions instead of leaving them in chat
-- A stable record of verified development commands, kept separate from proposed commands
-- Future room for automated checks once scaffolding exists: tests, doc validation, CI, and smoke verification
+- [test](/D:/youtube-watch-later-to-github/test): unit and orchestration coverage for critical paths
+- [worker-configuration.d.ts](/D:/youtube-watch-later-to-github/worker-configuration.d.ts): generated Cloudflare runtime types
+- [ci.yml](/D:/youtube-watch-later-to-github/.github/workflows/ci.yml): type generation, type-checking, and Vitest on push and pull request
+- [daily-reminder.yml](/D:/youtube-watch-later-to-github/.github/workflows/daily-reminder.yml): scheduled reminder delivery
+- [issue-sync.yml](/D:/youtube-watch-later-to-github/.github/workflows/issue-sync.yml): Project V2 status sync
 
-## Near-term architecture rules
+## Architecture rules
 
-- Keep boundaries explicit and boring. Prefer modules with narrow responsibilities over clever abstractions.
-- Treat external APIs as boundaries that need validation and fallback behavior.
-- Keep optional integrations, such as GitHub Project V2, isolated from the required path.
-- Encode durable decisions in versioned markdown before depending on memory or chat history.
-- Add enforcement gradually. Document first, then automate once build and test scaffolding exist.
+- Keep boundaries explicit and boring. Prefer narrow modules over clever abstractions.
+- Treat Telegram, YouTube, and GitHub as fault-prone boundaries with validation and fallback behavior.
+- Keep Project V2 optional so the required path still works with issue-only tracking.
+- Update docs together with code when routes, commands, or operational behavior change.

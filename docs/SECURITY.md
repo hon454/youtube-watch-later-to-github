@@ -8,13 +8,34 @@
 - Verify Telegram webhook authenticity before processing updates.
 - Restrict message handling to the configured allowed chat.
 
-## Planned security checkpoints
+## Implemented controls
 
-- document all required environment variables before runtime scaffolding lands
-- verify webhook secret handling in tests once a test harness exists
-- keep optional GitHub Project V2 permissions separate from the required path
-- review any scheduled automation for secret exposure or over-broad access
+- The Worker validates `X-Telegram-Bot-Api-Secret-Token` before processing webhook payloads.
+- The Worker rejects updates from chats other than `TELEGRAM_ALLOWED_CHAT_ID`.
+- Local secret files are ignored in [.gitignore](/D:/youtube-watch-later-to-github/.gitignore).
+- Project V2 integration remains optional behind `GITHUB_PROJECT_NUMBER`.
+- Webhook secret validation is covered by tests.
+
+## Secret inventory
+
+Worker runtime:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_WEBHOOK_SECRET`
+- `TELEGRAM_ALLOWED_CHAT_ID`
+- `GITHUB_TOKEN`
+- `GITHUB_OWNER`
+- `GITHUB_REPO`
+- `GITHUB_PROJECT_NUMBER` optional
+
+GitHub Actions:
+
+- `GH_TOKEN`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `GITHUB_PROJECT_NUMBER` optional
 
 ## Current limitation
 
-Security requirements are documented, but no enforcement code or automated checks exist yet.
+- GitHub token scope enforcement is documented but not programmatically validated.
+- The scheduled workflows assume repository secrets are configured correctly; they do not self-heal missing secrets.

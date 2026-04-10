@@ -2,9 +2,9 @@
 
 ## Status
 
-As of 2026-04-10, this repository does not yet contain scaffolded application code or verified build, run, test, and debug commands.
+As of 2026-04-10, the Cloudflare Worker scaffold, Vitest suite, and GitHub Actions workflows are present in this repository.
 
-This document is intentionally conservative. Only record commands here after they are executed successfully in this repository.
+This document remains intentionally conservative. Only commands that were executed successfully in this repository are listed below.
 
 ## Verification rule
 
@@ -16,17 +16,42 @@ Before adding or editing a canonical command in this file:
 
 ## Verified commands
 
-No application commands are verified yet.
+### Install dependencies
 
-## Sections to fill after scaffolding
+```bash
+npm install
+```
 
-Add verified entries for the following sections once the project exists:
+### Generate Cloudflare runtime types
 
-- Prerequisites
-- Install dependencies
-- Run local development server
-- Run tests
-- Run lint and format checks
-- Deploy
-- Debugging workflow
-- Required environment variables and local secrets handling
+```bash
+npm run cf-typegen
+```
+
+This generates [worker-configuration.d.ts](/D:/youtube-watch-later-to-github/worker-configuration.d.ts). Rerun it after changing [wrangler.toml](/D:/youtube-watch-later-to-github/wrangler.toml).
+
+### Run the local Worker
+
+```bash
+npm run dev
+```
+
+Verified by starting the Worker locally and confirming `GET /healthz` returned `{"ok":true}`.
+
+### Type-check the project
+
+```bash
+npm run check
+```
+
+### Run tests
+
+```bash
+npm test
+```
+
+## Local secrets
+
+- Copy [.dev.vars.example](/D:/youtube-watch-later-to-github/.dev.vars.example) to `.dev.vars` for Worker development.
+- Use [.env.example](/D:/youtube-watch-later-to-github/.env.example) for setup scripts and GitHub Actions-style local runs.
+- Never commit `.dev.vars`, `.env`, tokens, or account-specific IDs.

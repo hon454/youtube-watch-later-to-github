@@ -2,22 +2,21 @@
 
 ## Status snapshot
 
-As of 2026-04-10, this repository is intentionally documentation-first. The table below tracks harness-related maturity rather than application completeness.
+As of 2026-04-10, the repository has moved from documentation-first planning into an implemented v1 scaffold.
 
 | Area | Current state | Score |
 | --- | --- | --- |
-| Repository map | `AGENTS.md` plus architecture and plan indexes are present | 2/4 |
-| Product planning | v1 implementation plan exists and is discoverable | 2/4 |
-| Verified commands | only the "no verified commands yet" state is documented | 1/4 |
-| Test harness | not scaffolded yet | 0/4 |
-| Reliability checks | expectations documented, no automation yet | 1/4 |
-| Security checks | baseline requirements documented, no enforcement yet | 1/4 |
+| Repository map | Architecture, plans, security, reliability, and development docs are aligned with the scaffold | 4/4 |
+| Product planning | Revised v1 plan exists and the implementation follows its module boundaries | 4/4 |
+| Verified commands | install, type generation, local dev, type-check, and test commands were run successfully | 4/4 |
+| Test harness | Vitest coverage exists for parsing, formatting, GitHub integration helpers, and Worker orchestration | 3/4 |
+| Reliability checks | CI runs type generation, type-checking, and tests; scheduled reminder and sync workflows exist | 3/4 |
+| Security checks | webhook secret validation and allowed chat enforcement are implemented and tested | 3/4 |
 
-## Upgrade path
+## Current gap
 
-Raise these scores only when the underlying capability exists in the repository. The next meaningful lift should come from:
+The next meaningful quality lift should come from:
 
-- runtime scaffolding
-- verified local commands
-- test setup
-- CI checks that enforce agreed constraints
+- end-to-end smoke checks against deployed infrastructure
+- fixture-backed tests for GitHub and Telegram API edge cases
+- optional automation around release or deployment validation
